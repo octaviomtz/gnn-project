@@ -1,8 +1,9 @@
 logs
-data
+data/
 __pycache__
 .vscode
 mlruns
 *.ipynb
 temp*.py
 data_old/*
+data/processed/*

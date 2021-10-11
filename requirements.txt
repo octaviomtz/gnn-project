@@ -1,5 +1,5 @@
 pandas
-pytorch
+# pytorch
 pillow
 deepchem==2.5.0
 rdkit-pypi==2021.03.5
