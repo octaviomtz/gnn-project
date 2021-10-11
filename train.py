@@ -11,13 +11,18 @@ import mlflow.pytorch
 import matplotlib.pyplot as plt 
 import seaborn as sns
 import pandas as pd 
+import os
+from getpass import getpass
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+#%%
 # Specify tracking server
-mlflow.set_tracking_uri("http://localhost:5000")
+# mlflow.set_tracking_uri("http://localhost:5000")
+os.environ['MLFLOW_TRACKING_USERNAME'] = 'octaviomtz'
+os.environ['MLFLOW_TRACKING_PASSWORD'] = getpass('Enter your DAGsHub access token: ')
+mlflow.set_tracking_uri(f'https://dagshub.com/octaviomtz/gnn-project.mlflow')
 
 
-
+#%%
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 

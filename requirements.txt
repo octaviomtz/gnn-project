@@ -1,5 +1,10 @@
 pandas
 pytorch
 pillow
+deepchem==2.5.0
+rdkit-pypi==2021.03.5
+arm-mango
+mlflow
 torch
-torch-geometric
+# torch-geometric
+# torch-sparse==0.6.12
