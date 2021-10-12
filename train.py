@@ -11,16 +11,24 @@ from model_old import GNN
 import mlflow.pytorch
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from load_from_folder import ProcessedDataset
+from getpass import getpass
+from utils_misc import weights_from_unbalanced_classes, count_parameters
+import os
+from torch.utils.data import WeightedRandomSampler
 
-def count_parameters(model):
-    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+#%% Specify tracking server
+# mlflow.set_tracking_uri("http://localhost:5000")
+os.environ['MLFLOW_TRACKING_USERNAME'] = 'octaviomtz'
+os.environ['MLFLOW_TRACKING_PASSWORD'] = getpass('Enter your DAGsHub access token: ')
+mlflow.set_tracking_uri(f'https://dagshub.com/octaviomtz/gnn-project.mlflow')
 
 #%% Call this only on processed after 
 ## Loading the dataset
 # train_dataset = MoleculeDataset(root="data/", filename="HIV_train_oversampled.csv")
 # test_dataset = MoleculeDataset(root="data/", filename="HIV_test.csv")
-test_dataset = ProcessedDataset('data/processed_test')
-train_dataset = ProcessedDataset('data/processed_train')
+debug_subset=False
+test_dataset = ProcessedDataset('data/processed_test', debug_subset=debug_subset)
+train_dataset = ProcessedDataset('data/processed_train', debug_subset=debug_subset)
 
 #%% Loading the model
 model = GNN(feature_size=train_dataset[0].x.shape[1]) 
@@ -36,11 +44,15 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
 
 #%% Prepare training
-NUM_GRAPHS_PER_BATCH = 256
+BATCH_SIZE = 256
+weights, samples_weight = weights_from_unbalanced_classes(df_name='data/raw/HIV_train.csv', target='HIV_active', debug_subset=debug_subset)
+sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
 train_loader = DataLoader(train_dataset, 
-                    batch_size=NUM_GRAPHS_PER_BATCH, shuffle=True)
+                    batch_size=BATCH_SIZE, 
+                    num_workers=2, sampler=sampler)#shuffle=True)
 test_loader = DataLoader(test_dataset, 
-                         batch_size=NUM_GRAPHS_PER_BATCH, shuffle=True)
+                         batch_size=BATCH_SIZE, 
+                         num_workers=2, shuffle=False)
 
 def train(epoch):
     # Enumerate over the data
@@ -49,7 +61,6 @@ def train(epoch):
     for _, batch in enumerate(tqdm(train_loader)):
         batch.to(device)  
         optimizer.zero_grad() 
-        # Passing the node features and the connection info
         pred = model(batch.x.float(), 
                                 batch.edge_attr.float(),
                                 batch.edge_index, 
@@ -100,7 +111,7 @@ def calculate_metrics(y_pred, y_true, epoch, type):
 
 # %% Run the training
 with mlflow.start_run() as run:
-    for epoch in range(50): # 500
+    for epoch in range(11): # 500
         # Training
         model.train()
         loss = train(epoch=epoch)
@@ -122,3 +133,18 @@ with mlflow.start_run() as run:
 
 # %% Save the model 
 mlflow.pytorch.log_model(model, "model")
+
+#%%
+weights
+# %%
+weights[train_targets]
+# %%
+import pandas as pd
+df = pd.read_csv('data/raw/HIV_train.csv')
+classes = df['HIV_active'].values
+# %%
+classes
+# %%
+samples_weight = torch.tensor([weights[t] for t in classes])
+samples_weight
+# %%

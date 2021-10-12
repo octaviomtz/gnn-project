@@ -13,6 +13,8 @@ import seaborn as sns
 import pandas as pd 
 import os
 from getpass import getpass
+from mango import scheduler, Tuner
+from config import HYPERPARAMETERS, BEST_PARAMETERS, SIGNATURE
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #%%
 # Specify tracking server
@@ -25,7 +27,6 @@ mlflow.set_tracking_uri(f'https://dagshub.com/octaviomtz/gnn-project.mlflow')
 #%%
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
-
 
 def train_one_epoch(epoch, model, train_loader, optimizer, loss_fn):
     # Enumerate over the data
@@ -116,8 +117,6 @@ def calculate_metrics(y_pred, y_true, epoch, type):
         print(f"ROC AUC: notdefined")
 
 # %% Run the training
-from mango import scheduler, Tuner
-from config import HYPERPARAMETERS, BEST_PARAMETERS, SIGNATURE
 
 def run_one_training(params):
     params = params[0]
