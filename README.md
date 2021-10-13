@@ -1,10 +1,23 @@
-# Installing requirments to use colab via ssh
+# Overview
+Use GNN to determine the ability for a chemical compound to inhibit HIV replication.       
+Data:   
+. chemical structure under SMILES format   
+. HIV-activity: (0) innactive or (1) active compound
+![hydra_folders](/github_images/output.png?raw=true)
+
+## Installing requirments to use colab via ssh
 ```bash
 pip3 install -r requirements.txt
 bash install_geometric.sh
 ```
 
-# Comments about the code
+## Train (using hydra and MLops)
+```bash
+python3 train
+```
+
+
+## Comments about the code
 This is the code for this video series: https://www.youtube.com/watch?v=nAEb1lOf_4o
 
 ## Further things

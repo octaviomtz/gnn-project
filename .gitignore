@@ -7,3 +7,5 @@ mlruns
 temp*.py
 data_old/*
 data/processed/*
+models
+outputs

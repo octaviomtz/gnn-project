@@ -1,10 +1,12 @@
-pandas
-# pytorch
-pillow
+pandas==1.1.5
+pillow==7.1.2
 deepchem==2.5.0
 rdkit-pypi==2021.03.5
 arm-mango
-mlflow
+mlflow==1.20.2
+hydra_core==1.1.0
+hydra==2.5
+omegaconf==2.1.0
 torch
 # torch-geometric
 # torch-sparse==0.6.12
