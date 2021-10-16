@@ -144,5 +144,6 @@ class GNNTrans(torch.nn.Module):
         x = torch.relu(self.linear2(x))
         x = F.dropout(x, p=0.8, training=self.training)
         x = self.linear3(x)
+        x = torch.squeeze(x)
 
         return x

@@ -8,4 +8,4 @@ batch_size: 256
 epochs: 101
 test_ever_epoch: 5
 debug_subset: False
-model: GNN
+model: GNNTrans

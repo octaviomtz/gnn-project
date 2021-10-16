@@ -48,11 +48,12 @@ def train(model, loader, loss_fn, optimizer, device, epoch):
                                 batch.edge_attr.float(),
                                 batch.edge_index, 
                                 batch.batch) 
-        loss = torch.sqrt(loss_fn(pred, batch.y)) 
+        loss = loss_fn(pred, batch.y.float())
         loss.backward()  
         optimizer.step()  
-
-        all_preds.append(np.argmax(pred.cpu().detach().numpy(), axis=1))
+        #this was working with CrossEntropyLoss but not with BCEWithLogitsLoss
+        # all_preds.append(np.argmax(pred.cpu().detach().numpy(), axis=1))
+        all_preds.append(np.rint(torch.sigmoid(pred).cpu().detach().numpy()))
         all_labels.append(batch.y.cpu().detach().numpy())
     all_preds = np.concatenate(all_preds).ravel()
     all_labels = np.concatenate(all_labels).ravel()
@@ -69,8 +70,9 @@ def test(model, loader, loss_fn, optimizer, device, epoch):
                             batch.edge_attr.float(),
                             batch.edge_index, 
                             batch.batch) 
-            loss = torch.sqrt(loss_fn(pred, batch.y))    
-            all_preds.append(np.argmax(pred.cpu().detach().numpy(), axis=1))
+            loss = loss_fn(pred, batch.y.float())
+            all_preds.append(np.rint(torch.sigmoid(pred).cpu().detach().numpy()))  
+            # all_preds.append(np.argmax(pred.cpu().detach().numpy(), axis=1))
             all_labels.append(batch.y.cpu().detach().numpy())
         
     all_preds = np.concatenate(all_preds).ravel()

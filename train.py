@@ -18,6 +18,11 @@ from omegaconf import DictConfig, OmegaConf
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from config import BEST_PARAMETERS as params
 
+# TODO
+# 1.  Use BCEWithLogitsLoss for GNN too.
+# 1a. The ouput should be 1 neuron 
+# 1b. Adapt to use the running loss 
+
 @hydra.main(config_path='config', config_name='config.yaml')
 def main(cfg:DictConfig):
     path_orig = hydra.utils.get_original_cwd()
@@ -34,21 +39,27 @@ def main(cfg:DictConfig):
     train_dataset = ProcessedDataset(f'{path_orig}/data/processed_train', debug_subset=cfg.debug_subset)
 
     # Load one model
-    if cfg.model == 'GNN_Trans':
+    if cfg.model == 'GNNTrans':
         params["model_edge_dim"] = train_dataset[0].edge_attr.shape[1]
+        # print(params["model_edge_dim"], params["model_embedding_size"], params["model_attention_heads"], params["model_dropout_rate"], params["model_edge_dim"], params['model_layers'])
         model = GNNTrans(feature_size=train_dataset[0].x.shape[1], model_params=params) 
+        model_name='GNN transformer'
+        # Loss and Optimizer
+        weight = torch.tensor([params["pos_weight"]], dtype=torch.float32).to(device)
+        loss_fn = torch.nn.BCEWithLogitsLoss(pos_weight=weight)
     else: #default to GNN
         model = GNN(feature_size=train_dataset[0].x.shape[1]) 
-    
+        model_name='GNN'
+        # Loss and Optimizer
+        if cfg.weighted_loss:
+            weights = torch.tensor([1, 10], dtype=torch.float32).to(device)
+            loss_fn = torch.nn.CrossEntropyLoss(weight=weights)
+        else:
+            loss_fn = torch.nn.CrossEntropyLoss()
     model = model.to(device)
-    print(f"Number of parameters: {count_parameters(model)}")
+    print(f"{cfg.model} model: {model_name} Number of parameters: {count_parameters(model)}")
 
-    # Loss and Optimizer
-    if cfg.weighted_loss:
-        weights = torch.tensor([1, 10], dtype=torch.float32).to(device)
-        loss_fn = torch.nn.CrossEntropyLoss(weight=weights)
-    else:
-        loss_fn = torch.nn.CrossEntropyLoss()
+    
     optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9)  
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
