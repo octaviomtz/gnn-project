@@ -4,8 +4,8 @@ from torch_geometric.loader import DataLoader
 import numpy as np
 from tqdm import tqdm
 from dataset_featurizer import MoleculeDataset
-from model import GNN
-from model_old import GNN
+# from model import GNN
+from models import GNN, GNNTrans
 import mlflow.pytorch
 from load_from_folder import ProcessedDataset
 from getpass import getpass
@@ -16,6 +16,7 @@ from torch.utils.data import WeightedRandomSampler
 import hydra
 from omegaconf import DictConfig, OmegaConf
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+from config import BEST_PARAMETERS as params
 
 @hydra.main(config_path='config', config_name='config.yaml')
 def main(cfg:DictConfig):
@@ -32,8 +33,13 @@ def main(cfg:DictConfig):
     test_dataset = ProcessedDataset(f'{path_orig}/data/processed_test', debug_subset=cfg.debug_subset)
     train_dataset = ProcessedDataset(f'{path_orig}/data/processed_train', debug_subset=cfg.debug_subset)
 
-    # Loading the model
-    model = GNN(feature_size=train_dataset[0].x.shape[1]) 
+    # Load one model
+    if cfg.model == 'GNN_Trans':
+        params["model_edge_dim"] = train_dataset[0].edge_attr.shape[1]
+        model = GNNTrans(feature_size=train_dataset[0].x.shape[1], model_params=params) 
+    else: #default to GNN
+        model = GNN(feature_size=train_dataset[0].x.shape[1]) 
+    
     model = model.to(device)
     print(f"Number of parameters: {count_parameters(model)}")
 

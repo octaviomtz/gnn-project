@@ -1,19 +1,19 @@
 # Overview
 Use GNN to determine the ability for a chemical compound to inhibit HIV replication.       
 Data:   
-. chemical structure under SMILES format   
-. HIV-activity: (0) innactive or (1) active compound
+- chemical structure under SMILES format   
+- HIV-activity: (0) innactive or (1) active compound
 ![hydra_folders](/github_images/output.png?raw=true)
 
-## Installing requirments to use colab via ssh
+## Installing requirments to use colab GPU via ssh
 ```bash
 pip3 install -r requirements.txt
 bash install_geometric.sh
 ```
 
-## Train (using hydra and MLops)
+## Train (using hydra and mlflow)
 ```bash
-python3 train
+python3 train.py
 ```
 
 
