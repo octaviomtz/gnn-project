@@ -18,6 +18,7 @@ from omegaconf import DictConfig, OmegaConf
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 from config import BEST_PARAMETERS as params
 
+
 # TODO
 # 1.  Use BCEWithLogitsLoss for GNN too.
 # 1a. The ouput should be 1 neuron 
@@ -35,8 +36,12 @@ def main(cfg:DictConfig):
     ## Loading the dataset
     # train_dataset = MoleculeDataset(root="data/", filename="HIV_train_oversampled.csv")
     # test_dataset = MoleculeDataset(root="data/", filename="HIV_test.csv")
-    test_dataset = ProcessedDataset(f'{path_orig}/data/processed_test', debug_subset=cfg.debug_subset)
-    train_dataset = ProcessedDataset(f'{path_orig}/data/processed_train', debug_subset=cfg.debug_subset)
+    test_dataset = ProcessedDataset(f'{path_orig}/data/processed_test')
+    train_dataset = ProcessedDataset(f'{path_orig}/data/processed_train')
+    if cfg.debug_subset:
+        train_dataset = torch.utils.data.Subset(train_dataset, range(0, len(train_dataset), 5))
+        test_dataset = torch.utils.data.Subset(test_dataset, range(0, len(test_dataset), 5))
+        print('using subset_debug')
 
     # Load one model
     if cfg.model == 'GNNTrans':
@@ -64,8 +69,8 @@ def main(cfg:DictConfig):
     scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.95)
 
     # Prepare training
-    if cfg.weighted_sampler:
-        weights, samples_weight = weights_from_unbalanced_classes(df_name=f'{path_orig}/data/raw/HIV_train.csv', target='HIV_active', debug_subset=cfg.debug_subset)
+    if cfg.weighted_sampler and cfg.debug_subset==False:
+        weights, samples_weight = weights_from_unbalanced_classes(df_name=f'{path_orig}/data/raw/HIV_train.csv', target='HIV_active')
         sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
         train_loader = DataLoader(train_dataset, batch_size=cfg.batch_size, 
                             num_workers=2, sampler=sampler)

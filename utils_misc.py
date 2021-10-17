@@ -12,8 +12,8 @@ def weights_from_unbalanced_classes(df_name='data/raw/HIV_train.csv', target='HI
     https://discuss.pytorch.org/t/some-problems-with-weightedrandomsampler/23242/20'''
     df = pd.read_csv(df_name)
     classes = df[target].values
-    if debug_subset:
-        classes = [i for idx, i in enumerate(classes) if idx % 5 == 0]
+    # if debug_subset:
+    #     classes = [i for idx, i in enumerate(classes) if idx % 5 == 0]
     class0 = np.sum(classes==0)
     class1 = np.sum(classes==1)
     weights = 1/torch.Tensor(np.asarray([class0,class1]))
@@ -41,7 +41,7 @@ def train(model, loader, loss_fn, optimizer, device, epoch):
     # Enumerate over the data
     all_preds = []
     all_labels = []
-    for _, batch in enumerate(tqdm(loader)):
+    for _, batch in enumerate(tqdm(loader, desc='Train')):
         batch.to(device)  
         optimizer.zero_grad() 
         pred = model(batch.x.float(), 
@@ -64,7 +64,7 @@ def test(model, loader, loss_fn, optimizer, device, epoch):
     all_preds = []
     all_labels = []
     with torch.no_grad():
-        for batch in loader:
+        for batch in tqdm(loader, desc='Test'):
             batch.to(device)  
             pred = model(batch.x.float(), 
                             batch.edge_attr.float(),

@@ -5,7 +5,7 @@ weighted_loss: True
 weighted_sampler: True
 save_model: False
 batch_size: 256
-epochs: 101
+epochs: 11
 test_ever_epoch: 5
-debug_subset: False
 model: GNNTrans
+debug_subset: True
